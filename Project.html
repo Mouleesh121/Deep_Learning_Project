@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Intelligent Framework for Customer Feedback Analysis Using Deep Neural Networks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#edf1f6; --surface:#ffffff; --surface2:#e3e9f1; --ink:#0e1a2b; --muted:#56657a; --line:#ccd5e1;
+  --accent:#2446f0; --accent-ink:#ffffff; --pos:#0b8f7d; --neu:#b9800f; --neg:#d0285f;
+  --shadow:0 1px 0 rgba(14,26,43,.04),0 10px 30px rgba(14,26,43,.07);
+  --hd:'Bricolage Grotesque','Trebuchet MS',system-ui,sans-serif;
+  --bd:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a111d; --surface:#111b2c; --surface2:#182539; --ink:#e8eef8; --muted:#93a3ba; --line:#243350;
+    --accent:#7c93ff; --accent-ink:#0a111d; --pos:#2fd0b8; --neu:#e8b64c; --neg:#ff6f9a;
+    --shadow:0 1px 0 rgba(255,255,255,.03),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a111d; --surface:#111b2c; --surface2:#182539; --ink:#e8eef8; --muted:#93a3ba; --line:#243350;
+  --accent:#7c93ff; --accent-ink:#0a111d; --pos:#2fd0b8; --neu:#e8b64c; --neg:#ff6f9a;
+  --shadow:0 1px 0 rgba(255,255,255,.03),0 10px 30px rgba(0,0,0,.35);
+}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px);scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--hd);letter-spacing:-.02em;line-height:1.08;margin:0}
+h2{font-size:clamp(26px,3.4vw,38px);font-weight:700}
+h3{font-size:19px;font-weight:700}
+p{margin:0 0 .8em}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+section{padding:64px 0 8px}
+.sec-head{max-width:68ch;margin-bottom:26px}
+.sec-head p{color:var(--muted);font-size:17px;margin-top:10px}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:18px;height:56px}
+.brand{font-family:var(--hd);font-weight:800;font-size:18px;letter-spacing:-.02em;white-space:nowrap;display:flex;align-items:center;gap:9px}
+.brand i{width:22px;height:22px;border-radius:7px;background:conic-gradient(from 200deg,var(--neg),var(--neu),var(--pos),var(--accent),var(--neg));display:inline-block}
+.links{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
+.links::-webkit-scrollbar{display:none}
+.links a{color:var(--muted);text-decoration:none;font-weight:500;font-size:15px;padding:6px 11px;border-radius:8px;white-space:nowrap}
+.links a:hover{background:var(--surface2);color:var(--ink)}
+.icon-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:9px;width:36px;height:36px;cursor:pointer;font-size:16px}
+
+/* hero */
+.hero{padding-top:52px}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:center}
+.hero h1{font-size:clamp(34px,5.4vw,60px);font-weight:800}
+.lead{font-size:18px;color:var(--muted);max-width:58ch;margin:18px 0 24px}
+.cta{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:600;font-size:15px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 16px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{padding:6px 11px;font-size:14px;border-radius:8px}
+.live{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:20px}
+.live small{color:var(--muted);display:block;margin-bottom:10px;font-size:14px}
+.live .quote{font-family:var(--hd);font-size:21px;line-height:1.4;font-weight:500;min-height:92px}
+.verdict{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);flex-wrap:wrap}
+
+/* pipeline */
+.pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:0;margin-top:48px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface)}
+.stage{padding:18px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0}
+.stage b{font-family:var(--hd);font-size:17px;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.stage b span{width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:13px;font-family:var(--mono)}
+.stage p{font-size:14px;color:var(--muted);margin:0}
+
+/* cards / grid */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-size:13px}
+
+/* datasets */
+.ds{cursor:pointer;display:flex;flex-direction:column;gap:10px;transition:border-color .15s}
+.ds.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),var(--shadow)}
+.ds .id{font-family:var(--mono);font-size:13px;background:var(--surface2);padding:2px 8px;border-radius:6px;align-self:flex-start}
+.dist{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--surface2)}
+.dist i{display:block;height:100%}
+.neg-bg{background:var(--neg)} .neu-bg{background:var(--neu)} .pos-bg{background:var(--pos)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:14px;background:var(--surface2)}
+tr:last-child td{border-bottom:0}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:13px;font-weight:600;border:1px solid currentColor;white-space:nowrap}
+.tag.negative{color:var(--neg)} .tag.neutral{color:var(--neu)} .tag.positive{color:var(--pos)}
+.asp{display:inline-block;font-size:12.5px;padding:1px 8px;border-radius:6px;background:var(--surface2);margin:0 4px 4px 0;color:var(--muted)}
+select,input[type=number],textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
+textarea{resize:vertical;min-height:110px;line-height:1.5}
+label{font-size:14px;font-weight:600;display:block;margin-bottom:5px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+details{margin-top:18px}
+summary{cursor:pointer;font-weight:600}
+
+/* lab */
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.out{font-family:var(--mono);font-size:13px;color:var(--muted);float:right}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:18px 0}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi b{font-family:var(--hd);font-size:28px;display:block;line-height:1.1}
+.kpi span{font-size:13.5px;color:var(--muted)}
+canvas{width:100%;height:210px;display:block}
+.progress{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:12px}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+.cm td,.cm th{text-align:center;padding:10px 8px}
+.cm td{font-family:var(--mono);font-weight:500}
+.legend{display:flex;gap:14px;font-size:13.5px;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+svg text{font-family:var(--bd);fill:var(--muted);font-size:12px}
+
+/* analyze */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.chip{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:5px 12px;cursor:pointer;max-width:100%;text-align:left}
+.chip:hover{border-color:var(--accent)}
+.prob{display:grid;grid-template-columns:78px 1fr 48px;gap:10px;align-items:center;font-size:14px;margin:6px 0}
+.prob .bar{height:12px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.prob .bar i{display:block;height:100%;border-radius:99px;transition:width .35s}
+.words{font-size:18px;line-height:2;margin:12px 0}
+.words span.w{padding:2px 3px;border-radius:5px}
+.big{font-family:var(--hd);font-size:30px;font-weight:800}
+.stack{display:flex;height:14px;border-radius:99px;overflow:hidden;background:var(--surface2);min-width:140px}
+.net{font-family:var(--mono);font-size:13px}
+.note{font-size:14px;color:var(--muted)}
+.callout{border-left:4px solid var(--accent);background:var(--surface2);padding:12px 16px;border-radius:0 10px 10px 0;font-size:15px}
+footer{padding:48px 0 40px;color:var(--muted);font-size:14px}
+@media (max-width:860px){.hero-grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <div class="brand"><i></i>FeedbackIQ</div>
+    <nav class="links" aria-label="Sections">
+      <a href="#overview">Overview</a><a href="#datasets">Datasets</a><a href="#lab">Training lab</a>
+      <a href="#analyze">Analyze feedback</a><a href="#insights">Batch insights</a><a href="#benchmark">Benchmark</a><a href="#about">Method</a>
+    </nav>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle light or dark theme" title="Toggle theme">◐</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- OVERVIEW -->
+<section class="hero" id="overview">
+  <div class="hero-grid">
+    <div>
+      <h1>Intelligent Framework for Customer Feedback Analysis Using Deep Neural Networks</h1>
+      <p class="lead">Turn raw reviews, tickets and tweets into sentiment, the aspects customers talk about, and what to fix first. A deep neural network trains right here in your browser on three different feedback datasets (ds1, ds2, ds3), or on your own.</p>
+      <div class="cta">
+        <a class="btn primary" href="#analyze">Analyze a review</a>
+        <a class="btn" href="#datasets">Browse datasets</a>
+        <a class="btn" href="#lab">Train the network</a>
+      </div>
+    </div>
+    <div class="live" aria-live="polite">
+      <small>Live from the trained model. Colored words pushed the prediction toward positive (teal) or negative (pink).</small>
+      <div class="quote" id="heroQuote">Training the network on ds1…</div>
+      <div class="verdict" id="heroVerdict"></div>
+    </div>
+  </div>
+
+  <div class="pipeline" aria-label="Framework pipeline">
+    <div class="stage"><b><span>1</span>Collect</b><p>Feedback from different domains: shops, hotels and restaurants, telecom and banking.</p></div>
+    <div class="stage"><b><span>2</span>Clean</b><p>Lowercase, keep negations, drop stop-words, light stemming.</p></div>
+    <div class="stage"><b><span>3</span>Represent</b><p>TF-IDF vectors over single words and word pairs, learned on training data only.</p></div>
+    <div class="stage"><b><span>4</span>Learn</b><p>Dense, ReLU, dropout, dense, ReLU, softmax. Trained with Adam.</p></div>
+    <div class="stage"><b><span>5</span>Explain</b><p>Word-level influence plus sentiment per aspect (delivery, billing, staff…).</p></div>
+    <div class="stage"><b><span>6</span>Act</b><p>Satisfaction index, ranked problem areas and suggested actions.</p></div>
+  </div>
+</section>
+
+<!-- DATASETS -->
+<section id="datasets">
+  <div class="sec-head">
+    <h2>Three datasets, three domains</h2>
+    <p>Each dataset holds labeled feedback (negative, neutral, positive) with the aspects it mentions. Pick one and the network retrains on it.</p>
+  </div>
+  <div class="grid g3" id="dsCards"></div>
+
+  <div class="row" style="margin:26px 0 12px;justify-content:space-between">
+    <h3 id="sampleTitle">Sample rows</h3>
+    <div class="row">
+      <select id="sampleFilter" style="width:auto" aria-label="Filter by label">
+        <option value="all">All labels</option><option value="negative">Negative</option><option value="neutral">Neutral</option><option value="positive">Positive</option>
+      </select>
+      <button class="btn sm" id="shuffleBtn">Show other rows</button>
+    </div>
+  </div>
+  <div class="tbl-wrap"><table id="sampleTbl"></table></div>
+
+  <details class="card">
+    <summary>Add your own dataset (ds4)</summary>
+    <p class="note" style="margin-top:10px">Paste at least 20 lines in the form <span class="mono">label,text</span>. Labels can be positive, neutral or negative (or pos, neu, neg).</p>
+    <textarea id="customTxt" placeholder="positive,The checkout was quick and the staff were kind&#10;negative,My order never arrived and nobody answered my emails&#10;neutral,I ordered on Monday"></textarea>
+    <div class="row" style="margin-top:10px"><button class="btn" id="customBtn">Create ds4 and train</button><span class="note" id="customMsg"></span></div>
+  </details>
+</section>
+
+<!-- LAB -->
+<section id="lab">
+  <div class="sec-head">
+    <h2>Training lab</h2>
+    <p>Change the network's shape and watch it learn. Curves show the loss and accuracy on the 80% training split and the 20% held-out test split for <b id="labDs">ds1</b>.</p>
+  </div>
+  <div class="card">
+    <div class="controls">
+      <div><label for="pH1">First hidden layer <span class="out" id="oH1"></span></label>
+        <select id="pH1"><option>32</option><option selected>64</option><option>128</option><option>256</option></select></div>
+      <div><label for="pH2">Second hidden layer</label>
+        <select id="pH2"><option value="0">None</option><option>16</option><option selected>32</option><option>64</option></select></div>
+      <div><label for="pEp">Epochs <span class="out" id="oEp">40</span></label><input type="range" id="pEp" min="5" max="100" step="5" value="40"></div>
+      <div><label for="pLr">Learning rate</label>
+        <select id="pLr"><option>0.0005</option><option>0.001</option><option selected>0.003</option><option>0.01</option></select></div>
+      <div><label for="pDr">Dropout <span class="out" id="oDr">0.2</span></label><input type="range" id="pDr" min="0" max="0.5" step="0.05" value="0.2"></div>
+      <div><label for="pBs">Batch size</label>
+        <select id="pBs"><option>8</option><option selected>16</option><option>32</option></select></div>
+    </div>
+    <div class="row" style="margin-top:18px">
+      <button class="btn primary" id="trainBtn">Train network</button>
+      <button class="btn" id="stopBtn" disabled>Stop</button>
+      <span class="note" id="status">Getting ready…</span>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid g2">
+    <div class="card"><h3>Loss</h3><canvas id="cLoss" role="img" aria-label="Training and test loss per epoch"></canvas>
+      <div class="legend"><span><i style="background:var(--accent)"></i>Train</span><span><i style="background:var(--neg)"></i>Test</span></div></div>
+    <div class="card"><h3>Accuracy</h3><canvas id="cAcc" role="img" aria-label="Training and test accuracy per epoch"></canvas>
+      <div class="legend"><span><i style="background:var(--accent)"></i>Train</span><span><i style="background:var(--pos)"></i>Test</span></div></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Network architecture</h3><div id="arch" style="margin-top:8px"></div></div>
+    <div class="card"><h3>Confusion matrix on the test split</h3>
+      <p class="note">Rows are the true label, columns are what the network predicted.</p>
+      <div id="cm"></div></div>
+  </div>
+  <div class="tbl-wrap" style="margin-top:16px"><table id="perClass"></table></div>
+</section>
+
+<!-- ANALYZE -->
+<section id="analyze">
+  <div class="sec-head">
+    <h2>Analyze a piece of feedback</h2>
+    <p>Write or paste a review. The network scores the whole text, shows which words drove the result, and rates each aspect it finds, so a mixed review like "great room, awful breakfast" is split correctly.</p>
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <label for="oneTxt">Customer feedback</label>
+      <textarea id="oneTxt"></textarea>
+      <div class="chips" id="exChips" aria-label="Examples"></div>
+      <button class="btn primary" id="oneBtn">Analyze feedback</button>
+    </div>
+    <div class="card" id="oneOut" aria-live="polite"><p class="muted">Results appear here.</p></div>
+  </div>
+</section>
+
+<!-- INSIGHTS -->
+<section id="insights">
+  <div class="sec-head">
+    <h2>Batch insights</h2>
+    <p>Paste many comments, one per line, or score the held-out test split. You get a satisfaction index, a ranking of aspects from worst to best, and what to do first.</p>
+  </div>
+  <div class="card">
+    <label for="batchTxt">Feedback, one comment per line</label>
+    <textarea id="batchTxt" style="min-height:150px"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn primary" id="batchBtn">Analyze batch</button>
+      <button class="btn" id="testBtn">Use test split of current dataset</button>
+    </div>
+  </div>
+  <div id="batchOut" style="margin-top:16px"></div>
+</section>
+
+<!-- BENCHMARK -->
+<section id="benchmark">
+  <div class="sec-head">
+    <h2>Compare datasets</h2>
+    <p>Train the same network settings on every dataset and compare how well each domain is learned.</p>
+  </div>
+  <div class="row" style="margin-bottom:14px"><button class="btn primary" id="benchBtn">Benchmark all datasets</button><span class="note" id="benchMsg"></span></div>
+  <div class="tbl-wrap"><table id="benchTbl"><tr><td class="muted">Run the benchmark to fill this table.</td></tr></table></div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="sec-head"><h2>How it works, and what to keep in mind</h2></div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Method</h3>
+      <p style="margin-top:10px">Text is lowercased, negations such as "not" and "never" are kept, common filler words are removed and words are lightly stemmed. Single words and neighbouring word pairs become TF-IDF features, so "not good" and "good" look different to the network.</p>
+      <p>The classifier is a feed-forward deep neural network with up to two ReLU hidden layers, dropout, L2 weight decay and a 3-way softmax output, trained with mini-batch Adam. The code is written from scratch in JavaScript, with no libraries, which is why it runs entirely in your browser.</p>
+      <p style="margin:0">Word influence uses occlusion: each word is removed in turn and the change in the positive-minus-negative score is measured. Aspect sentiment scores each clause that mentions an aspect keyword separately.</p>
+    </div>
+    <div class="card">
+      <h3>Limits</h3>
+      <p style="margin-top:10px">ds1, ds2 and ds3 are generated from hand-written phrase banks in the style of real feedback, with mixed reviews and about 4% label noise added. They are suitable for demonstrating and comparing the framework, but accuracy on them will not match real-world data.</p>
+      <p>For production, replace the data with real corpora such as Amazon product reviews, Yelp or airline tweets, and move to embeddings, LSTM or transformer encoders for better handling of sarcasm and long text.</p>
+      <p class="callout" style="margin:0">Use ds4 to test the framework on your own labeled comments.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">Intelligent Framework for Customer Feedback Analysis Using Deep Neural Networks. Everything runs locally in this page.</div></footer>
+
+<script>
+// ===== CORE START =====
+const LABELS=['negative','neutral','positive'];
+const LIDX={negative:0,neutral:1,positive:2};
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function randn(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function shuffle(a,r){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- Domain definitions (ds1, ds2, ds3) ---------- */
+const DOMAINS={
+ds1:{name:'E-commerce product reviews',blurb:'Online shopping feedback on delivery, product quality, price, packaging and support.',seed:101,
+ openers:{pos:['','','Absolutely love it!','Amazing!','Overall,','Super happy with this.','Five stars.'],neg:['','','Awful experience.','Terrible.','Really disappointed.','Overall,','One star.'],neu:['','','Overall,','For the record,','Review:','Just an update:']},
+ closers:{pos:['','Highly recommend.','Will buy again.','Very satisfied.','Thumbs up.'],neg:['','Would not recommend.','Very disappointed.','Total waste.','Do not buy.'],neu:['','','It is okay.','Nothing more to add.','Decide for yourself.']},
+ aspects:{
+  delivery:{kw:['deliver','shipping','shipped','ship','courier','arrived','dispatch','tracking'],
+   pos:['The delivery was super fast and right on time','Shipping was quick and the courier was polite','It arrived a day earlier than promised','Dispatch was prompt and tracking worked perfectly','Delivery was smooth with no hassle'],
+   neg:['The delivery took forever and nobody updated me','Shipping was painfully slow','It arrived two weeks late','The courier left the parcel outside in the rain','Delivery was a mess and tracking never worked'],
+   neu:['Delivery took about five days','It arrived on the expected date','The courier delivered it in the afternoon','Shipping time was standard','The parcel arrived on a Tuesday'],
+   act:'Audit courier partners and send proactive delay alerts.'},
+  quality:{kw:['quality','build','material','stitching','battery','screen','durable','broke','broken','works','working','flimsy'],
+   pos:['The build quality is excellent and feels premium','Material feels sturdy and durable','The screen is gorgeous and the battery lasts all day','Quality exceeded my expectations','Stitching is neat and everything works perfectly'],
+   neg:['The build quality is terrible and it feels cheap','It broke after just two days','The material is flimsy and the stitching came apart','The battery drains in an hour and the screen flickers','Quality is awful and nothing works properly'],
+   neu:['The build quality is about average','The material is plastic and the color matches the photo','The battery lasts roughly a day','Quality seems okay for what it is','It works as described, nothing special'],
+   act:'Escalate recurring defects to quality assurance and review the supplier.'},
+  price:{kw:['price','cost','value','money','discount','worth','bargain','expensive','overpriced','ripped'],
+   pos:['Great value for the money','The price is very reasonable and worth every penny','I got a nice discount and it is totally worth it','Cheap yet impressive, a real bargain','Fair price for what you get'],
+   neg:['Way too expensive for what it offers','Totally overpriced and not worth the money','The price went up right after I bought it','Poor value, I feel ripped off','Costs too much for such poor performance'],
+   neu:['The price is about the same as other stores','It costs around fifty dollars','Price is average for this category','I paid the listed price with no discount','The cost matches the competition'],
+   act:'Compare prices with competitors and explain the value more clearly.'},
+  packaging:{kw:['packaging','package','packed','box','wrapped','wrapping','sealed','seal'],
+   pos:['The packaging was neat and well protected','Box was sturdy and everything came sealed','Beautiful wrapping, perfect for gifts','Packaging was eco friendly and secure','Well packed with plenty of padding'],
+   neg:['The packaging was damaged and crushed','Box arrived torn and the seal was broken','Terrible wrapping, items were rattling around','Packaging was flimsy and wasteful','It was poorly packed with no padding'],
+   neu:['The packaging is a plain brown box','It came in standard packaging','The box was medium sized','Packaging was minimal','The item was wrapped in plastic'],
+   act:'Upgrade protective packaging, especially for fragile items.'},
+  support:{kw:['support','service','customer','refund','return','returns','replacement','agent','replied','emails'],
+   pos:['Customer support was helpful and responded quickly','The agent solved my issue in minutes','Refund was processed without any fuss','Returns were easy and the staff was friendly','Excellent service and a quick replacement'],
+   neg:['Customer support was useless and never replied','The agent was rude and unhelpful','Still waiting for my refund after a month','Return process was a nightmare','Terrible service and they ignored my emails'],
+   neu:['I contacted customer support by email','The refund policy is thirty days','The agent asked for my order number','I requested a return and got a form','Support replied the next day'],
+   act:'Train agents and cut first-response time with reply templates.'}},
+ samples:['Delivery was quick and the packaging was neat, but the build quality feels cheap.','Absolutely love this phone, the screen is gorgeous and the battery lasts all day!','Customer support never replied and I am still waiting for my refund.','The parcel arrived on a Tuesday. It is a plain black case.','Overpriced for what it is, and it broke within a week.','Great value for the money, will buy again.']},
+
+ds2:{name:'Restaurant and hotel reviews',blurb:'Hospitality feedback on food, staff, atmosphere, cleanliness and value.',seed:202,
+ openers:{pos:['','','We loved it!','What a place!','Overall,','Fantastic stay:','Amazing!'],neg:['','','Sadly,','Avoid.','Overall,','Very upset:','Awful.'],neu:['','','Visited last weekend.','Overall,','Notes:']},
+ closers:{pos:['','Highly recommend.','We will be back.','Five stars.','Loved every minute.'],neg:['','Never again.','Would not recommend.','Very disappointed.','Total letdown.'],neu:['','','Just sharing.','Nothing more to add.']},
+ aspects:{
+  food:{kw:['food','meal','dish','dishes','taste','tasted','tasteless','breakfast','dinner','menu','flavor','flavour'],
+   pos:['The food was delicious and full of flavor','Breakfast spread was fantastic with fresh options','Every dish tasted amazing','The menu has wonderful choices and the meal was perfect','Dinner was a delight from start to finish'],
+   neg:['The food was cold and tasteless','Breakfast was stale with hardly any options','The dish was overcooked and bland','The menu was limited and the meal was disappointing','Dinner was awful and made me sick'],
+   neu:['The menu has a mix of local and continental dishes','Breakfast is served from seven to ten','The meal was an average size','Dinner was a set menu','The food was ordinary'],
+   act:'Review menu consistency and add kitchen quality checks.'},
+  service:{kw:['service','staff','waiter','waitress','reception','host','server','manager'],
+   pos:['The staff were warm and attentive','Our waiter was friendly and super helpful','Reception checked us in quickly with a smile','Service was outstanding and the manager went above and beyond','The host made us feel welcome'],
+   neg:['The staff were rude and ignored us','Our waiter was inattentive and slow','Reception made us wait an hour to check in','Service was dreadful and the manager did not care','The host was dismissive'],
+   neu:['The staff wore uniforms','Our waiter took the order after ten minutes','Reception is open all day','Service was standard','The manager greeted us at the door'],
+   act:'Refresh staff training on hospitality and response times.'},
+  ambience:{kw:['ambience','ambiance','atmosphere','music','decor','view','noise','vibe','terrace'],
+   pos:['The ambience was cozy and romantic','Lovely decor and a relaxing atmosphere','The view from the terrace was breathtaking','Soft music created a perfect vibe','Peaceful and quiet atmosphere'],
+   neg:['The atmosphere was loud and chaotic','Dated decor and a depressing vibe','The view was blocked by construction','Music was blaring and the noise was unbearable','The ambience felt cold and uncomfortable'],
+   neu:['The decor is modern','There was background music','The restaurant has a terrace and an indoor area','The atmosphere was typical for a busy place','The view faces the street'],
+   act:'Control noise and music levels and refresh the decor.'},
+  cleanliness:{kw:['clean','cleanliness','room','rooms','bathroom','bed','hygiene','towels','sheets','dirty','spotless'],
+   pos:['The room was spotless and the bed was super comfortable','Bathroom was sparkling clean with fresh towels','Excellent hygiene everywhere','Clean sheets and a tidy room','Everything in the room was immaculate'],
+   neg:['The room was dirty and smelled bad','Bathroom was filthy with stained towels','Hygiene standards were shocking','Bed sheets were stained and the room was untidy','Found hair in the bathroom and dust everywhere'],
+   neu:['The room is on the third floor','The bathroom has a shower','Bed is a queen size','Towels are changed on request','The room faces the courtyard'],
+   act:'Tighten housekeeping checklists and add spot inspections.'},
+  value:{kw:['value','price','prices','bill','cost','worth','charge','charges','money','expensive','overpriced'],
+   pos:['Great value and the bill was very fair','Worth every penny for what we got','Reasonable price for such quality','No hidden charge and good value for money','The cost was surprisingly low'],
+   neg:['Overpriced and not worth the money','The bill had hidden charges','Way too expensive for such a poor stay','Terrible value and a rip off','The cost was ridiculous'],
+   neu:['The bill came to around eighty dollars','Prices are similar to nearby places','We paid the bill by card','The charge was listed in the booking','Average cost for this area'],
+   act:'Make pricing transparent and remove hidden charges.'}},
+ samples:['The room was spotless and the staff were lovely, but the breakfast was cold and bland.','Amazing view from the terrace and the dinner was delicious!','We waited an hour to check in and reception was rude.','The restaurant has a terrace and an indoor area.','Hidden charges on the bill, totally not worth the money.','Cozy atmosphere and a friendly waiter, we loved it.']},
+
+ds3:{name:'Telecom and banking support feedback',blurb:'Short, tweet-style complaints and praise about network, billing, app, support and plans.',seed:303,
+ openers:{pos:['','','Thanks team!','Impressed:','Great news:','Love this.'],neg:['','','Seriously?','Fed up:','Worst experience:','Awful.'],neu:['','','Quick note:','FYI:','Update:']},
+ closers:{pos:['','Great job.','Keep it up.','Very happy.'],neg:['','Fix this now.','Switching providers.','Unacceptable.','Very frustrated.'],neu:['','','Just sharing.','Any updates?']},
+ aspects:{
+  network:{kw:['network','signal','coverage','internet','speed','connection','calls','data','5g','4g','lag','lags'],
+   pos:['The network coverage is excellent even in remote areas','Internet speed is blazing fast','Calls are crystal clear with a strong signal','Connection has been rock solid','5G speeds are amazing'],
+   neg:['The network keeps dropping every hour','Internet speed is painfully slow','Calls keep cutting out with no signal','Connection is unreliable and constantly lags','Coverage is terrible at my home'],
+   neu:['I am on a 5G plan','The network switched to 4G in the basement','My data pack is thirty days','Signal shows three bars','My connection runs through the router'],
+   act:'Prioritise tower upgrades in the areas with most complaints.'},
+  billing:{kw:['bill','billing','charge','charged','charges','payment','recharge','invoice','refund','fee','fees'],
+   pos:['Billing is transparent and easy to understand','Recharge was instant and payment worked first time','The invoice was accurate with no hidden fees','Refund arrived within a day','Charges are fair and clearly listed'],
+   neg:['I was charged twice and billing is a mess','Hidden fees keep appearing on my bill','Recharge failed but money was deducted','The invoice is wrong again','Refund never arrived despite many complaints'],
+   neu:['My bill is generated on the first of the month','I paid the invoice online','The recharge was for thirty days','The fee is listed on the website','Payment is due on the tenth'],
+   act:'Fix billing errors and show every fee upfront.'},
+  app:{kw:['app','apps','login','otp','interface','update','website','portal'],
+   pos:['The app is smooth and easy to use','Login with OTP works instantly','Latest update made the interface beautiful','The portal is clean and fast','Managing my account in the app is a breeze'],
+   neg:['The app keeps crashing after the update','Login fails and the OTP never arrives','The interface is confusing and cluttered','The portal is down again','App is buggy and freezes constantly'],
+   neu:['I use the app to check balance','The app asks for an OTP at login','There is a new update available','The portal has a help section','The interface has a dark mode option'],
+   act:'Add regression testing before each app release.'},
+  support:{kw:['support','agent','helpline','complaint','ticket','representative','executive'],
+   pos:['Support resolved my complaint in minutes','The agent was polite and knowledgeable','Helpline picked up immediately','My ticket was closed the same day','The representative went the extra mile'],
+   neg:['Support never resolved my complaint','The agent was rude and clueless','Helpline kept me on hold for an hour','My ticket has been open for weeks','The representative hung up on me'],
+   neu:['I raised a ticket yesterday','The helpline is open from nine to six','An agent called me back','I filed a complaint online','The executive asked for my number'],
+   act:'Reduce hold times and improve first-contact resolution.'},
+  plans:{kw:['plan','plans','offer','pack','validity','tariff','package','subscription'],
+   pos:['The new plan offers fantastic benefits','Great offer with long validity','Tariff is cheap and the pack has everything I need','Subscription perks are brilliant','Best plan I have had so far'],
+   neg:['The plan is overpriced with tiny benefits','The offer was misleading and validity was cut','Tariff keeps rising while the pack shrinks','Subscription got renewed without my consent','Worst plan ever'],
+   neu:['I am on the three hundred rupee plan','The offer ends this month','My pack has twenty eight days validity','The tariff is listed on the website','I switched my subscription last week'],
+   act:'Simplify plans and notify customers before renewals.'}},
+ samples:['The app keeps crashing after the update and the OTP never arrives.','Internet speed is blazing fast and support resolved my ticket in minutes!','I was charged twice this month and nobody is fixing my billing issue.','I am on the three hundred rupee plan with twenty eight days validity.','Coverage at my home is terrible, calls keep dropping.','Impressed with the new plan, great offer and a clear invoice.']}
+};
+
+function generate(dom,n,seed){
+  const rng=mulberry32(seed),pick=a=>a[Math.floor(rng()*a.length)];
+  const keys=Object.keys(dom.aspects),seen=new Set(),rows=[];
+  const third=Math.round(n/3);
+  const plan=[['positive','pos',third],['negative','neg',third],['neutral','neu',n-2*third]];
+  const LCf=s=>/^I\s/.test(s)?s:s.charAt(0).toLowerCase()+s.slice(1);
+  for(const [label,k,cnt] of plan){
+    let c=0,guard=0;
+    while(c<cnt&&guard++<30000){
+      let body,asp;
+      if(label==='neutral'&&rng()<0.3){
+        const a=pick(keys);let b=pick(keys);while(b===a)b=pick(keys);
+        const p=pick(dom.aspects[a].pos),q=pick(dom.aspects[b].neg);
+        body=rng()<0.5?`${p}, but ${LCf(q)}`:`${q}, but ${LCf(p)}`;
+        asp=[{a:a,s:'positive'},{a:b,s:'negative'}];
+      }else{
+        const m=rng()<0.6?1:2,ch=[];
+        while(ch.length<m){const a=pick(keys);if(!ch.includes(a))ch.push(a)}
+        const sep=pick(['. ','; ']);
+        body=ch.map(a=>pick(dom.aspects[a][k])).map((t,i)=>i&&sep==='; '?LCf(t):t).join(sep);
+        asp=ch.map(a=>({a:a,s:label}));
+      }
+      const op=pick(dom.openers[k]),cl=pick(dom.closers[k]);
+      const b2=op&&/[,:]$/.test(op)?LCf(body):body;
+      const text=[op,b2+'.',cl].filter(Boolean).join(' ');
+      if(seen.has(text))continue;
+      seen.add(text);rows.push({text,label,aspects:asp,noisy:false});c++;
+    }
+  }
+  rows.forEach(r=>{if(rng()<0.04){const o=LABELS.filter(l=>l!==r.label);r.label=o[Math.floor(rng()*2)];r.noisy=true}});
+  return shuffle(rows,rng);
+}
+
+/* ---------- Pre-processing & TF-IDF ---------- */
+const STOP=new Set('a an the and or of to in on at for with is are was were be been it its this that these those i me my we our you your they them their he she his her as by from so very really just also than then there here have has had do does did will would can could should may might am if into over under up out about after before again all any some such only own same s t get got one'.split(' '));
+function stem(w){
+  if(w.length>5&&w.endsWith('ing'))return w.slice(0,-3);
+  if(w.length>4&&w.endsWith('ed'))return w.slice(0,-2);
+  if(w.length>4&&w.endsWith('ly'))return w.slice(0,-2);
+  if(w.length>3&&w.endsWith('s')&&!w.endsWith('ss'))return w.slice(0,-1);
+  return w;
+}
+function tokenize(text){
+  const t=text.toLowerCase().replace(/[\u2019]/g,"'").replace(/n't\b/g,' not').replace(/[^a-z0-9\s]/g,' ');
+  const uni=t.split(/\s+/).filter(w=>w&&!STOP.has(w)).map(stem);
+  const out=uni.slice();
+  for(let i=0;i<uni.length-1;i++)out.push(uni[i]+'_'+uni[i+1]);
+  return out;
+}
+class Vectorizer{
+  fit(texts,maxF=1200,minDf=2){
+    const df=new Map();
+    texts.forEach(t=>{new Set(tokenize(t)).forEach(w=>df.set(w,(df.get(w)||0)+1))});
+    this.N=texts.length;
+    const arr=[...df].filter(e=>e[1]>=minDf).sort((a,b)=>b[1]-a[1]||(a[0]<b[0]?-1:1)).slice(0,maxF);
+    this.vocab=new Map(arr.map((e,i)=>[e[0],i]));
+    this.terms=arr.map(e=>e[0]);
+    this.idf=Float32Array.from(arr.map(e=>Math.log((1+this.N)/(1+e[1]))+1));
+    this.size=arr.length;
+  }
+  transform(text){
+    const cnt=new Map();
+    tokenize(text).forEach(w=>{const i=this.vocab.get(w);if(i!==undefined)cnt.set(i,(cnt.get(i)||0)+1)});
+    const idx=[...cnt.keys()].sort((a,b)=>a-b);let norm=0;
+    const val=idx.map(i=>{const v=(1+Math.log(cnt.get(i)))*this.idf[i];norm+=v*v;return v});
+    norm=Math.sqrt(norm)||1;
+    return {idx:Int32Array.from(idx),val:Float32Array.from(val.map(v=>v/norm))};
+  }
+}
+
+/* ---------- Deep neural network (Dense-ReLU-Dropout ... Softmax, Adam) ---------- */
+class DNN{
+  constructor(sizes,rng,dropout,l2){
+    this.sizes=sizes;this.L=sizes.length-1;this.rng=rng;this.dropout=dropout;this.l2=l2;this.t=0;
+    this.W=[];this.b=[];this.mW=[];this.vW=[];this.mb=[];this.vb=[];this.gW=[];this.gb=[];
+    for(let l=0;l<this.L;l++){
+      const i=sizes[l],o=sizes[l+1],w=new Float32Array(i*o),s=Math.sqrt(2/i);
+      for(let k=0;k<w.length;k++)w[k]=randn(rng)*s;
+      this.W.push(w);this.b.push(new Float32Array(o));
+      this.mW.push(new Float32Array(i*o));this.vW.push(new Float32Array(i*o));
+      this.mb.push(new Float32Array(o));this.vb.push(new Float32Array(o));
+      this.gW.push(new Float32Array(i*o));this.gb.push(new Float32Array(o));
+    }
+  }
+  get params(){let n=0;for(let l=0;l<this.L;l++)n+=this.W[l].length+this.b[l].length;return n}
+  forward(x,train){
+    const acts=[],masks=[];let inp=null;
+    for(let l=0;l<this.L;l++){
+      const o=this.sizes[l+1],W=this.W[l],z=Float32Array.from(this.b[l]);
+      if(l===0){
+        for(let k=0;k<x.idx.length;k++){const base=x.idx[k]*o,v=x.val[k];for(let j=0;j<o;j++)z[j]+=v*W[base+j]}
+      }else{
+        const i=this.sizes[l];
+        for(let r=0;r<i;r++){const v=inp[r];if(v===0)continue;const base=r*o;for(let j=0;j<o;j++)z[j]+=v*W[base+j]}
+      }
+      if(l<this.L-1){
+        const m=new Float32Array(o);
+        for(let j=0;j<o;j++){
+          if(z[j]<0)z[j]=0;
+          if(train&&this.dropout>0){m[j]=this.rng()<this.dropout?0:1/(1-this.dropout);z[j]*=m[j]}else m[j]=1;
+        }
+        masks.push(m);
+      }else{
+        let mx=-Infinity;for(let j=0;j<o;j++)if(z[j]>mx)mx=z[j];
+        let s=0;for(let j=0;j<o;j++){z[j]=Math.exp(z[j]-mx);s+=z[j]}
+        for(let j=0;j<o;j++)z[j]/=s;
+      }
+      acts.push(z);inp=z;
+    }
+    return {acts,masks,p:inp};
+  }
+  backward(x,cache,y){
+    const {acts,masks}=cache;
+    let delta=Float32Array.from(acts[this.L-1]);delta[y]-=1;
+    for(let l=this.L-1;l>=0;l--){
+      const o=this.sizes[l+1],i=this.sizes[l],gW=this.gW[l],gb=this.gb[l];
+      for(let j=0;j<o;j++)gb[j]+=delta[j];
+      let prev=null;
+      if(l===0){
+        for(let k=0;k<x.idx.length;k++){const base=x.idx[k]*o,v=x.val[k];for(let j=0;j<o;j++)gW[base+j]+=v*delta[j]}
+      }else{
+        const a=acts[l-1],W=this.W[l];prev=new Float32Array(i);
+        for(let r=0;r<i;r++){
+          const base=r*o,av=a[r];let s=0;
+          for(let j=0;j<o;j++){gW[base+j]+=av*delta[j];s+=W[base+j]*delta[j]}
+          prev[r]=av>0?s*masks[l-1][r]:0;
+        }
+      }
+      delta=prev;
+    }
+  }
+  step(bs,lr){
+    this.t++;const b1=0.9,b2=0.999,eps=1e-8,c1=1-Math.pow(b1,this.t),c2=1-Math.pow(b2,this.t);
+    for(let l=0;l<this.L;l++){
+      const W=this.W[l],gW=this.gW[l],m=this.mW[l],v=this.vW[l];
+      for(let k=0;k<W.length;k++){
+        const g=gW[k]/bs+this.l2*W[k];
+        m[k]=b1*m[k]+(1-b1)*g;v[k]=b2*v[k]+(1-b2)*g*g;
+        W[k]-=lr*(m[k]/c1)/(Math.sqrt(v[k]/c2)+eps);gW[k]=0;
+      }
+      const B=this.b[l],gB=this.gb[l],mb=this.mb[l],vb=this.vb[l];
+      for(let k=0;k<B.length;k++){
+        const g=gB[k]/bs;
+        mb[k]=b1*mb[k]+(1-b1)*g;vb[k]=b2*vb[k]+(1-b2)*g*g;
+        B[k]-=lr*(mb[k]/c1)/(Math.sqrt(vb[k]/c2)+eps);gB[k]=0;
+      }
+    }
+  }
+  predict(x){return this.forward(x,false).p}
+}
+
+function evaluate(net,X,Y){
+  let loss=0,ok=0;const cm=[[0,0,0],[0,0,0],[0,0,0]];
+  for(let i=0;i<X.length;i++){
+    const p=net.predict(X[i]);loss+=-Math.log(p[Y[i]]+1e-9);
+    let a=0;for(let j=1;j<3;j++)if(p[j]>p[a])a=j;
+    if(a===Y[i])ok++;cm[Y[i]][a]++;
+  }
+  return {loss:loss/X.length,acc:ok/X.length,cm};
+}
+function classStats(cm){
+  const out=LABELS.map((name,c)=>{
+    const tp=cm[c][c];let colS=0,rowS=0;
+    for(let k=0;k<3;k++){colS+=cm[k][c];rowS+=cm[c][k]}
+    const p=colS?tp/colS:0,r=rowS?tp/rowS:0,f=p+r?2*p*r/(p+r):0;
+    return {name,p,r,f,support:rowS};
+  });
+  return {classes:out,macroF1:out.reduce((s,c)=>s+c.f,0)/3};
+}
+
+async function runTraining(rows,params,cb){
+  cb=cb||{};const t0=Date.now();
+  const rng=mulberry32(params.seed||7);
+  const by={negative:[],neutral:[],positive:[]};
+  rows.forEach((r,i)=>by[r.label].push(i));
+  let tr=[],te=[];
+  for(const k in by){const a=shuffle(by[k],rng),c=Math.round(a.length*0.8);tr.push(...a.slice(0,c));te.push(...a.slice(c))}
+  tr=shuffle(tr,rng);
+  const vec=new Vectorizer();vec.fit(tr.map(i=>rows[i].text));
+  const Xtr=tr.map(i=>vec.transform(rows[i].text)),Ytr=tr.map(i=>LIDX[rows[i].label]);
+  const Xte=te.map(i=>vec.transform(rows[i].text)),Yte=te.map(i=>LIDX[rows[i].label]);
+  const sizes=[vec.size,params.h1].concat(params.h2>0?[params.h2]:[],[3]);
+  const net=new DNN(sizes,rng,params.dropout,1e-4);
+  const hist=[];let order=tr.map((_,i)=>i);
+  for(let ep=0;ep<params.epochs;ep++){
+    if(cb.shouldStop&&cb.shouldStop())break;
+    order=shuffle(order,rng);
+    for(let s=0;s<order.length;s+=params.batch){
+      const batch=order.slice(s,s+params.batch);
+      for(const i of batch){const c=net.forward(Xtr[i],true);net.backward(Xtr[i],c,Ytr[i])}
+      net.step(batch.length,params.lr);
+    }
+    const a=evaluate(net,Xtr,Ytr),b=evaluate(net,Xte,Yte);
+    hist.push({trL:a.loss,trA:a.acc,teL:b.loss,teA:b.acc});
+    if(cb.onEpoch)cb.onEpoch(ep+1,params.epochs,hist);
+    await new Promise(r=>setTimeout(r,0));
+  }
+  const fin=evaluate(net,Xte,Yte),trFin=evaluate(net,Xtr,Ytr);
+  const st=classStats(fin.cm);
+  return {net,vec,sizes,tr,te,hist,rows,params,trainAcc:trFin.acc,testAcc:fin.acc,cm:fin.cm,stats:st,ms:Date.now()-t0};
+}
+// ===== CORE END =====
+
+/* =========================== UI =========================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const pct=v=>(v*100).toFixed(1)+'%';
+const COLV={negative:'--neg',neutral:'--neu',positive:'--pos'};
+
+const state={ds:'ds1',data:{},run:null,busy:false,stop:false,hist:[],sampleSeed:1,bench:[]};
+const ALLASP={};
+Object.values(DOMAINS).forEach(d=>Object.entries(d.aspects).forEach(([k,v])=>{ALLASP[k]=ALLASP[k]||{kw:[],act:v.act};ALLASP[k].kw=[...new Set(ALLASP[k].kw.concat(v.kw))]}));
+
+function init(){
+  Object.entries(DOMAINS).forEach(([id,d])=>{state.data[id]={id,name:d.name,rows:generate(d,420,d.seed),samples:d.samples}});
+  renderCards();renderSamples();bindUI();
+  document.querySelectorAll('input[type=range],select').forEach(e=>e.addEventListener('input',updateOuts));updateOuts();
+  trainCurrent();
+}
+function lexicon(){
+  const d=DOMAINS[state.ds];
+  if(d)return Object.fromEntries(Object.entries(d.aspects).map(([k,v])=>[k,{kw:v.kw,act:v.act}]));
+  return ALLASP;
+}
+function dsLabel(id){return id+' · '+state.data[id].name}
+
+/* ---- datasets ---- */
+function counts(rows){const c={negative:0,neutral:0,positive:0};rows.forEach(r=>c[r.label]++);return c}
+function renderCards(){
+  $('#dsCards').innerHTML=Object.keys(state.data).map(id=>{
+    const d=state.data[id],c=counts(d.rows),n=d.rows.length;
+    const avg=(d.rows.reduce((s,r)=>s+r.text.split(/\s+/).length,0)/n).toFixed(1);
+    const asp=DOMAINS[id]?Object.keys(DOMAINS[id].aspects):['mixed'];
+    return `<div class="card ds ${id===state.ds?'active':''}" data-id="${id}" tabindex="0" role="button" aria-pressed="${id===state.ds}">
+      <span class="id">${id}</span><h3>${esc(d.name)}</h3>
+      <p class="muted" style="margin:0;font-size:15px">${esc(DOMAINS[id]?DOMAINS[id].blurb:'Your own labeled comments.')}</p>
+      <div class="dist" title="negative / neutral / positive"><i class="neg-bg" style="width:${c.negative/n*100}%"></i><i class="neu-bg" style="width:${c.neutral/n*100}%"></i><i class="pos-bg" style="width:${c.positive/n*100}%"></i></div>
+      <div class="note"><b>${n}</b> comments (${c.negative} neg, ${c.neutral} neu, ${c.positive} pos). About ${avg} words each.</div>
+      <div>${asp.map(a=>`<span class="asp">${a}</span>`).join('')}</div>
+      <button class="btn ${id===state.ds?'primary':''}" style="align-self:flex-start" tabindex="-1">${id===state.ds?'Selected':'Use '+id}</button></div>`}).join('');
+  document.querySelectorAll('.ds').forEach(el=>{
+    const go=()=>{if(state.busy||el.dataset.id===state.ds)return;selectDs(el.dataset.id)};
+    el.addEventListener('click',go);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+  });
+}
+function renderSamples(){
+  const d=state.data[state.ds],f=$('#sampleFilter').value;
+  $('#sampleTitle').textContent='Sample rows from '+dsLabel(state.ds);
+  let rows=d.rows.filter(r=>f==='all'||r.label===f);
+  rows=shuffle(rows,mulberry32(state.sampleSeed*97+3)).slice(0,8);
+  $('#sampleTbl').innerHTML='<tr><th>Feedback</th><th>Label</th><th>Aspects mentioned</th></tr>'+rows.map(r=>
+    `<tr><td>${esc(r.text)}</td><td><span class="tag ${r.label}">${r.label}</span></td><td>${(r.aspects||[]).map(a=>`<span class="asp">${esc(a.a)}</span>`).join('')}</td></tr>`).join('');
+}
+function selectDs(id){
+  state.ds=id;state.run=null;renderCards();renderSamples();trainCurrent();
+}
+
+/* ---- training ---- */
+function getParams(){
+  return {h1:+$('#pH1').value,h2:+$('#pH2').value,epochs:+$('#pEp').value,lr:+$('#pLr').value,dropout:+$('#pDr').value,batch:+$('#pBs').value,seed:7};
+}
+function updateOuts(){$('#oEp').textContent=$('#pEp').value;$('#oDr').textContent=(+$('#pDr').value).toFixed(2)}
+function setBusy(b){
+  state.busy=b;$('#trainBtn').disabled=b;$('#stopBtn').disabled=!b;$('#benchBtn').disabled=b;$('#customBtn').disabled=b;
+}
+async function trainCurrent(){
+  if(state.busy)return;
+  setBusy(true);state.stop=false;state.hist=[];
+  const id=state.ds,p=getParams();
+  $('#labDs').textContent=id;
+  $('#status').textContent='Training on '+id+'…';$('#bar').style.width='0';
+  const run=await runTraining(state.data[id].rows,p,{
+    shouldStop:()=>state.stop,
+    onEpoch:(ep,total,h)=>{
+      state.hist=h;$('#bar').style.width=(ep/total*100)+'%';
+      const l=h[h.length-1];
+      $('#status').textContent=`Epoch ${ep}/${total}: test accuracy ${pct(l.teA)}, loss ${l.teL.toFixed(3)}`;
+      redrawCharts();
+    }});
+  if(id!==state.ds){setBusy(false);return}
+  state.run=run;
+  $('#status').textContent=`Done in ${(run.ms/1000).toFixed(1)}s. Test accuracy ${pct(run.testAcc)}.`;
+  $('#bar').style.width='100%';
+  setBusy(false);
+  renderLab();prepareAnalysis();
+}
+function redrawCharts(){
+  const h=state.hist;
+  drawChart($('#cLoss'),[{data:h.map(e=>e.trL),color:cssv('--accent')},{data:h.map(e=>e.teL),color:cssv('--neg')}],{min:0});
+  drawChart($('#cAcc'),[{data:h.map(e=>e.trA),color:cssv('--accent')},{data:h.map(e=>e.teA),color:cssv('--pos')}],{min:0,max:1,pct:true});
+}
+function drawChart(cv,series,o){
+  const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+  if(!w)return;cv.width=w*dpr;cv.height=h*dpr;
+  const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
+  const pad={l:40,r:10,t:10,b:22},n=Math.max(2,...series.map(s=>s.data.length));
+  const all=series.flatMap(s=>s.data);
+  const mn=o.min!==undefined?o.min:0,mx=o.max!==undefined?o.max:Math.max(0.1,...all)*1.08;
+  const X=i=>pad.l+(w-pad.l-pad.r)*i/(n-1),Y=v=>pad.t+(h-pad.t-pad.b)*(1-(v-mn)/(mx-mn));
+  c.font='11px '+getComputedStyle(document.body).fontFamily;c.fillStyle=cssv('--muted');c.strokeStyle=cssv('--line');c.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const v=mn+(mx-mn)*i/4,y=Y(v);c.beginPath();c.moveTo(pad.l,y);c.lineTo(w-pad.r,y);c.stroke();
+    c.textAlign='right';c.fillText(o.pct?Math.round(v*100)+'%':v.toFixed(2),pad.l-6,y+4);
+  }
+  c.textAlign='center';c.fillText('epoch 1',pad.l+8,h-6);c.fillText('epoch '+n,w-pad.r-14,h-6);
+  series.forEach(s=>{
+    if(!s.data.length)return;c.strokeStyle=s.color;c.lineWidth=2.2;c.beginPath();
+    s.data.forEach((v,i)=>{i?c.lineTo(X(i),Y(v)):c.moveTo(X(i),Y(v))});c.stroke();
+  });
+}
+function archSvg(sizes){
+  const W=620,H=220,names=['Input (TF-IDF)'].concat(sizes.slice(1,-1).map((_,i)=>'Hidden '+(i+1)+' (ReLU)'),['Output (softmax)']);
+  const xs=sizes.map((_,i)=>50+i*(W-100)/(sizes.length-1));
+  const pos=sizes.map((s,i)=>{const k=Math.min(s,7);return Array.from({length:k},(_,j)=>H/2-14+(j-(k-1)/2)*24)});
+  let g='';
+  for(let l=0;l<sizes.length-1;l++)pos[l].forEach(y1=>pos[l+1].forEach(y2=>{g+=`<line x1="${xs[l]}" y1="${y1}" x2="${xs[l+1]}" y2="${y2}" style="stroke:var(--line)" stroke-width="1"/>`}));
+  sizes.forEach((s,l)=>{
+    const col=l===sizes.length-1?['--neg','--neu','--pos']:null;
+    pos[l].forEach((y,j)=>{const f=col?`var(${col[j]})`:(l===0?'var(--muted)':'var(--accent)');g+=`<circle cx="${xs[l]}" cy="${y}" r="8" style="fill:${f}"/>`});
+    if(s>7)g+=`<text x="${xs[l]}" y="${H/2-14+4*24+14}" text-anchor="middle">+${s-7} more</text>`;
+    g+=`<text x="${xs[l]}" y="${H-22}" text-anchor="middle" style="font-weight:600;fill:var(--ink)">${s}</text><text x="${xs[l]}" y="${H-6}" text-anchor="middle">${names[l]}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Network layers: ${sizes.join(', ')} units">${g}</svg>`;
+}
+function renderLab(){
+  const r=state.run;if(!r)return;
+  $('#kpis').innerHTML=[['Test accuracy',pct(r.testAcc)],['Macro F1',r.stats.macroF1.toFixed(3)],['Train accuracy',pct(r.trainAcc)],['Vocabulary',r.vec.size],['Parameters',r.net.params.toLocaleString()],['Train / test',r.tr.length+' / '+r.te.length]].map(k=>`<div class="kpi"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('');
+  $('#arch').innerHTML=archSvg(r.sizes);
+  const mx=Math.max(1,...r.cm.flat());
+  $('#cm').innerHTML='<table class="cm"><tr><th></th>'+LABELS.map(l=>`<th>pred ${l.slice(0,3)}</th>`).join('')+'</tr>'+r.cm.map((row,i)=>`<tr><th>true ${LABELS[i].slice(0,3)}</th>`+row.map((v,j)=>`<td style="background:color-mix(in srgb,var(${i===j?'--pos':'--neg'}) ${Math.round(v/mx*55)}%,transparent)">${v}</td>`).join('')+'</tr>').join('')+'</table>';
+  $('#perClass').innerHTML='<tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Test samples</th></tr>'+r.stats.classes.map(c=>`<tr><td><span class="tag ${c.name}">${c.name}</span></td><td>${pct(c.p)}</td><td>${pct(c.r)}</td><td>${c.f.toFixed(3)}</td><td>${c.support}</td></tr>`).join('');
+  redrawCharts();
+}
+
+/* ---- analysis ---- */
+function probs(text){const r=state.run;return Array.from(r.net.predict(r.vec.transform(text)))}
+function argmax(p){let a=0;for(let j=1;j<p.length;j++)if(p[j]>p[a])a=j;return a}
+function splitClauses(t){return t.split(/[.!?;\n]+|,\s*but\s+|\s+but\s+|\bhowever,?\s+/i).map(s=>s.trim()).filter(s=>s.length>2)}
+function findAspects(clause,lex){
+  const words=clause.toLowerCase().match(/[a-z0-9]+/g)||[];
+  return Object.keys(lex).filter(a=>lex[a].kw.some(k=>words.some(w=>w===k||w===k+'s'||(k.length>=6&&w.startsWith(k)))));
+}
+function analyze(text,explain){
+  const p=probs(text),idx=argmax(p),res={text,p,idx,label:LABELS[idx],aspects:[],words:null};
+  const lex=lexicon(),acc={};
+  splitClauses(text).forEach(cl=>{
+    const as=findAspects(cl,lex);if(!as.length)return;
+    const q=probs(cl);as.forEach(a=>{(acc[a]=acc[a]||[]).push(q)});
+  });
+  Object.entries(acc).forEach(([a,qs])=>{
+    const m=[0,1,2].map(j=>qs.reduce((s,q)=>s+q[j],0)/qs.length);res.aspects.push({a,p:m,idx:argmax(m),label:LABELS[argmax(m)]});
+  });
+  if(explain){
+    const parts=text.split(/(\s+)/),score=q=>q[2]-q[0],base=score(p);
+    res.words=parts.map((w,i)=>{
+      if(/^\s+$/.test(w)||!w)return {w,d:0};
+      const t2=parts.filter((_,j)=>j!==i).join('');
+      return {w,d:base-score(probs(t2))};
+    });
+  }
+  return res;
+}
+function wordsHtml(words){
+  return words.map(o=>{
+    if(!o.d)return esc(o.w);
+    const s=Math.min(70,Math.abs(o.d)*190);
+    return `<span class="w" title="${o.d>0?'pushes toward positive':'pushes toward negative'} (${o.d.toFixed(2)})" style="background:color-mix(in srgb,var(${o.d>0?'--pos':'--neg'}) ${s}%,transparent)">${esc(o.w)}</span>`;
+  }).join('');
+}
+function probBars(p){
+  return LABELS.slice().reverse().map(l=>{const j=LIDX[l];return `<div class="prob"><span>${l}</span><div class="bar"><i style="width:${p[j]*100}%;background:var(${COLV[l]})"></i></div><span class="mono">${(p[j]*100).toFixed(0)}%</span></div>`}).join('');
+}
+function renderOne(text){
+  if(!state.run){$('#oneOut').innerHTML='<p class="muted">The network is still training. Results will work in a moment.</p>';return}
+  if(!text.trim()){$('#oneOut').innerHTML='<p class="muted">Type some feedback first, then choose Analyze feedback.</p>';return}
+  const r=analyze(text,true);
+  $('#oneOut').innerHTML=`<div class="row" style="justify-content:space-between"><span class="big" style="color:var(${COLV[r.label]})">${r.label}</span><span class="note">${(r.p[r.idx]*100).toFixed(0)}% confidence</span></div>
+   ${probBars(r.p)}<div class="words">${wordsHtml(r.words)}</div>
+   <h3 style="margin:14px 0 8px;font-size:17px">Aspects found</h3>
+   ${r.aspects.length?`<div class="tbl-wrap"><table><tr><th>Aspect</th><th>Sentiment</th><th>Confidence</th></tr>${r.aspects.map(a=>`<tr><td>${esc(a.a)}</td><td><span class="tag ${a.label}">${a.label}</span></td><td>${(a.p[a.idx]*100).toFixed(0)}%</td></tr>`).join('')}</table></div>`:'<p class="note">No known aspect keywords found. Try mentioning things like '+Object.keys(lexicon()).slice(0,3).join(', ')+'.</p>'}`;
+}
+function renderHero(){
+  const d=state.data[state.ds];if(!state.run)return;
+  const r=analyze(d.samples[0],true);
+  $('#heroQuote').innerHTML=wordsHtml(r.words);
+  $('#heroVerdict').innerHTML=`<span class="tag ${r.label}">${r.label}</span><span class="note">${(r.p[r.idx]*100).toFixed(0)}% confidence, ${esc(dsLabel(state.ds))}</span>`;
+}
+function prepareAnalysis(){
+  const d=state.data[state.ds];
+  $('#exChips').innerHTML=d.samples.map((s,i)=>`<button class="chip" data-i="${i}">${esc(s.length>58?s.slice(0,56)+'…':s)}</button>`).join('');
+  document.querySelectorAll('#exChips .chip').forEach(b=>b.addEventListener('click',()=>{const s=d.samples[+b.dataset.i];$('#oneTxt').value=s;renderOne(s)}));
+  $('#oneTxt').value=d.samples[0];renderOne(d.samples[0]);
+  $('#batchTxt').value=d.samples.join('\n');
+  $('#batchOut').innerHTML='';
+  renderHero();
+}
+
+/* ---- batch ---- */
+function renderBatch(lines){
+  if(!state.run){$('#batchOut').innerHTML='<p class="muted">The network is still training.</p>';return}
+  lines=lines.map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){$('#batchOut').innerHTML='<p class="muted">Paste at least one comment, one per line.</p>';return}
+  const items=lines.map(t=>analyze(t,false)),n=items.length,lex=lexicon();
+  const c={negative:0,neutral:0,positive:0};items.forEach(i=>c[i.label]++);
+  const csi=(c.positive-c.negative)/n*100;
+  const agg={};
+  items.forEach(it=>it.aspects.forEach(a=>{const o=agg[a.a]=agg[a.a]||{negative:0,neutral:0,positive:0,n:0};o[a.label]++;o.n++}));
+  const aspRows=Object.entries(agg).map(([a,o])=>({a,...o,net:(o.positive-o.negative)/o.n*100})).sort((x,y)=>x.net-y.net);
+  const worst=items.filter(i=>i.label==='negative').sort((a,b)=>b.p[0]-a.p[0]).slice(0,5);
+  const todo=aspRows.filter(r=>r.negative>0).slice(0,3);
+  $('#batchOut').innerHTML=`
+   <div class="kpis" style="margin-top:0">
+     <div class="kpi"><b>${n}</b><span>comments analyzed</span></div>
+     <div class="kpi"><b style="color:var(--pos)">${Math.round(c.positive/n*100)}%</b><span>positive</span></div>
+     <div class="kpi"><b style="color:var(--neu)">${Math.round(c.neutral/n*100)}%</b><span>neutral</span></div>
+     <div class="kpi"><b style="color:var(--neg)">${Math.round(c.negative/n*100)}%</b><span>negative</span></div>
+     <div class="kpi"><b>${csi>0?'+':''}${csi.toFixed(0)}</b><span>satisfaction index (positive minus negative, in points)</span></div>
+   </div>
+   <div class="grid g2">
+    <div class="card"><h3>Aspects, worst first</h3>
+     ${aspRows.length?`<div class="tbl-wrap" style="margin-top:12px"><table><tr><th>Aspect</th><th>Mentions</th><th>Mix</th><th>Net</th></tr>${aspRows.map(r=>`<tr><td>${esc(r.a)}</td><td>${r.n}</td><td><div class="stack"><i class="neg-bg" style="width:${r.negative/r.n*100}%"></i><i class="neu-bg" style="width:${r.neutral/r.n*100}%"></i><i class="pos-bg" style="width:${r.positive/r.n*100}%"></i></div></td><td class="net" style="color:var(${r.net<0?'--neg':r.net>0?'--pos':'--neu'})">${r.net>0?'+':''}${r.net.toFixed(0)}</td></tr>`).join('')}</table></div>`:'<p class="note">No aspect keywords found in these comments.</p>'}</div>
+    <div class="card"><h3>What to do first</h3>
+     ${todo.length?`<ol style="padding-left:20px;margin:12px 0 0">${todo.map(r=>`<li style="margin-bottom:10px"><b>${esc(r.a)}</b> has ${r.negative} negative of ${r.n} mentions. ${esc((lex[r.a]||{}).act||'Investigate the root cause with the support team.')}</li>`).join('')}</ol>`:'<p class="note" style="margin-top:10px">No negative aspects in this batch. Keep doing what works.</p>'}
+     <h3 style="margin:18px 0 8px;font-size:17px">Most critical comments</h3>
+     ${worst.length?worst.map(w=>`<p style="font-size:15px;margin:0 0 8px"><span class="tag negative">${(w.p[0]*100).toFixed(0)}%</span> ${esc(w.text)}</p>`).join(''):'<p class="note">None found.</p>'}
+    </div></div>`;
+}
+
+/* ---- benchmark ---- */
+async function benchmark(){
+  if(state.busy)return;setBusy(true);state.bench=[];const p=getParams(),ids=Object.keys(state.data);
+  for(let k=0;k<ids.length;k++){
+    $('#benchMsg').textContent=`Training ${ids[k]} (${k+1} of ${ids.length})…`;
+    const r=await runTraining(state.data[ids[k]].rows,p,{});
+    state.bench.push({id:ids[k],r});
+    $('#benchTbl').innerHTML='<tr><th>Dataset</th><th>Comments</th><th>Vocabulary</th><th>Parameters</th><th>Train acc.</th><th>Test acc.</th><th>Macro F1</th><th>Time</th></tr>'+state.bench.map(b=>`<tr><td><b>${b.id}</b><br><span class="note">${esc(state.data[b.id].name)}</span></td><td>${b.r.rows.length}</td><td>${b.r.vec.size}</td><td>${b.r.net.params.toLocaleString()}</td><td>${pct(b.r.trainAcc)}</td><td><b>${pct(b.r.testAcc)}</b><div class="stack" style="height:8px;margin-top:6px"><i class="pos-bg" style="width:${b.r.testAcc*100}%"></i></div></td><td>${b.r.stats.macroF1.toFixed(3)}</td><td>${(b.r.ms/1000).toFixed(1)}s</td></tr>`).join('');
+  }
+  $('#benchMsg').textContent='Finished. Same network settings, different domains.';
+  setBusy(false);
+}
+
+/* ---- custom dataset ---- */
+function parseCustom(txt){
+  const rows=[];
+  txt.split('\n').forEach(line=>{
+    const i=line.indexOf(',');if(i<1)return;
+    const l=line.slice(0,i).trim().toLowerCase(),t=line.slice(i+1).trim().replace(/^"|"$/g,'');
+    let lab=null;if(/^(pos|1|\+)/.test(l))lab='positive';else if(/^(neu|0)/.test(l))lab='neutral';else if(/^(neg|-)/.test(l))lab='negative';
+    if(lab&&t.length>2)rows.push({text:t,label:lab,aspects:[],noisy:false});
+  });
+  return rows;
+}
+
+/* ---- wiring ---- */
+function bindUI(){
+  $('#trainBtn').addEventListener('click',trainCurrent);
+  $('#stopBtn').addEventListener('click',()=>{state.stop=true});
+  $('#shuffleBtn').addEventListener('click',()=>{state.sampleSeed++;renderSamples()});
+  $('#sampleFilter').addEventListener('change',renderSamples);
+  $('#oneBtn').addEventListener('click',()=>renderOne($('#oneTxt').value));
+  $('#batchBtn').addEventListener('click',()=>renderBatch($('#batchTxt').value.split('\n')));
+  $('#testBtn').addEventListener('click',()=>{
+    if(!state.run)return renderBatch([]);
+    const r=state.run,lines=r.te.map(i=>r.rows[i].text);
+    $('#batchTxt').value=lines.join('\n');renderBatch(lines);
+  });
+  $('#benchBtn').addEventListener('click',benchmark);
+  $('#customBtn').addEventListener('click',()=>{
+    const rows=parseCustom($('#customTxt').value),c=counts(rows);
+    const classes=Object.values(c).filter(v=>v>=4).length;
+    if(rows.length<20||classes<2){$('#customMsg').textContent='Need at least 20 valid lines with 4 or more examples in at least two labels. Found '+rows.length+' valid lines.';return}
+    state.data.ds4={id:'ds4',name:'Custom dataset',rows:shuffle(rows,mulberry32(5)),samples:rows.slice(0,6).map(r=>r.text)};
+    $('#customMsg').textContent='ds4 created with '+rows.length+' comments.';
+    state.ds='ds4';state.run=null;renderCards();renderSamples();trainCurrent();
+  });
+  $('#themeBtn').addEventListener('click',()=>{
+    const cur=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+    document.documentElement.dataset.theme=cur==='dark'?'light':'dark';
+    redrawCharts();if(state.run){renderLab();renderHero()}
+  });
+  let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(redrawCharts,120)});
+}
+init();
+</script>
+</body>
+</html>
